@@ -5,11 +5,18 @@ import {
   Vector3,
   HemisphericLight,
   MeshBuilder,
+  ActionManager,
+  SetValueAction,
+  AbstractMesh,
+  DoNothingAction,
 } from "@babylonjs/core";
+import { type } from "os";
 
 export default class MainScene {
   scene: Scene;
   engine: Engine;
+  ground!: AbstractMesh;
+  sphere!: AbstractMesh;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.engine = new Engine(this.canvas, true);
@@ -33,20 +40,49 @@ export default class MainScene {
 
     hemiLight.intensity = 0.5;
 
-    const ground = MeshBuilder.CreateBox(
+    this.ground = MeshBuilder.CreateBox(
       "ground",
 
       { width: 10, height: 1, depth: 10 },
       this.scene
     );
 
-    const sphere = MeshBuilder.CreateSphere(
+    this.sphere = MeshBuilder.CreateSphere(
       "sphere",
       { diameter: 1 },
       this.scene
     );
-    sphere.position = new Vector3(0, 1, 0);
+    this.sphere.position = new Vector3(0, 1, 0);
 
     return scene;
+  }
+
+  Actions(access: boolean): void {
+    if (access) {
+      this.sphere.actionManager = new ActionManager(this.scene);
+      this.sphere.actionManager
+        .registerAction(
+          new SetValueAction(
+            ActionManager.OnPickDownTrigger,
+            this.sphere,
+            "position",
+            new Vector3(0, 3, 0)
+          )
+        )
+        ?.then(
+          new SetValueAction(
+            ActionManager.OnPickDownTrigger,
+            this.sphere,
+            "position",
+            new Vector3(0, 1, 0)
+          )
+        );
+    } else {
+      console.log("nothing");
+      this.sphere.actionManager = new ActionManager(this.scene);
+      this.sphere.actionManager.registerAction(
+        new DoNothingAction(ActionManager.OnPickDownTrigger)
+      );
+    }
   }
 }
