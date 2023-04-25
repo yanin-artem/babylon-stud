@@ -20,13 +20,10 @@ const btn = ref<string>("action");
 
 onMounted(() => {
   const scene = new Scene(canvas.value);
-  scene.Actions(true)
+  scene.Actions(btn.value);
 
   watch(btn, () => {
-    if (btn.value === "action")
-      scene.Actions(true)
-    else
-      scene.Actions(false)
+    scene.Actions(btn.value)
   })
 })
 
