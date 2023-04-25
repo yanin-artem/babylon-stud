@@ -1,5 +1,12 @@
 <template>
-  <q-btn @click="action = !action" label="Action"/>
+  <div class="q-pa-md">
+    <div class="q-gutter-sm">
+      <q-radio v-model="btn" val="action" label="Курсор" />
+      <q-radio v-model="btn" val="rectangle" label="Смещение" />
+      <q-radio v-model="btn" val="ellipse" label="Вращение" />
+      <q-radio v-model="btn" val="polygon" label="Масштабирование" />
+    </div>
+  </div>
   <canvas style="width: 80%;height: 80%;" ref="canvas" />
 </template>
 
@@ -9,12 +16,14 @@ import Scene from "src/babylon/Scene";
 
 const canvas = ref();
 
-const action = ref<boolean>(false);
+const btn = ref<string>("action");
 
 onMounted(() => {
   const scene = new Scene(canvas.value);
-  watch(action, () => {
-    if (action.value)
+  scene.Actions(true)
+
+  watch(btn, () => {
+    if (btn.value === "action")
       scene.Actions(true)
     else
       scene.Actions(false)

@@ -9,8 +9,9 @@ import {
   SetValueAction,
   AbstractMesh,
   DoNothingAction,
+  Color3,
+  StandardMaterial,
 } from "@babylonjs/core";
-import { type } from "os";
 
 export default class MainScene {
   scene: Scene;
@@ -59,30 +60,48 @@ export default class MainScene {
 
   Actions(access: boolean): void {
     if (access) {
+      const color = new StandardMaterial("color", this.scene);
+      color.diffuseColor = new Color3(0, 128, 0);
       this.sphere.actionManager = new ActionManager(this.scene);
-      this.sphere.actionManager
-        .registerAction(
+      this.ground.actionManager = new ActionManager(this.scene);
+
+      function setColor(mesh: AbstractMesh) {
+        mesh.actionManager?.registerAction(
           new SetValueAction(
             ActionManager.OnPickDownTrigger,
-            this.sphere,
-            "position",
-            new Vector3(0, 3, 0)
-          )
-        )
-        ?.then(
-          new SetValueAction(
-            ActionManager.OnPickDownTrigger,
-            this.sphere,
-            "position",
-            new Vector3(0, 1, 0)
+            mesh,
+            "material",
+            color
           )
         );
+      }
+
+      function deleteColor(mesh: AbstractMesh, oppositeMesh: AbstractMesh) {
+        mesh.actionManager?.registerAction(
+          new SetValueAction(
+            ActionManager.OnPickDownTrigger,
+            oppositeMesh,
+            "material",
+            null
+          )
+        );
+      }
+
+      setColor(this.sphere);
+      setColor(this.ground);
+      deleteColor(this.sphere, this.ground);
+      deleteColor(this.ground, this.sphere);
     } else {
-      console.log("nothing");
       this.sphere.actionManager = new ActionManager(this.scene);
-      this.sphere.actionManager.registerAction(
-        new DoNothingAction(ActionManager.OnPickDownTrigger)
-      );
+      this.ground.actionManager = new ActionManager(this.scene);
+
+      function stopAction(mesh: AbstractMesh) {
+        mesh.actionManager?.registerAction(
+          new DoNothingAction(ActionManager.OnPickDownTrigger)
+        );
+      }
+      stopAction(this.sphere);
+      stopAction(this.ground);
     }
   }
 }
