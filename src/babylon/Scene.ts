@@ -6,14 +6,13 @@ import {
   HemisphericLight,
   MeshBuilder,
   ActionManager,
-  SetValueAction,
   AbstractMesh,
-  DoNothingAction,
   ExecuteCodeAction,
   Color3,
   StandardMaterial,
   UtilityLayerRenderer,
   PositionGizmo,
+  Gizmo,
 } from "@babylonjs/core";
 
 export default class MainScene {
@@ -21,6 +20,8 @@ export default class MainScene {
   engine: Engine;
   ground!: AbstractMesh;
   sphere!: AbstractMesh;
+  gizmo!: Gizmo;
+  gizmoMesh!: AbstractMesh;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.engine = new Engine(this.canvas, true);
@@ -62,11 +63,15 @@ export default class MainScene {
 
   Actions(action: string): void {
     const color = new StandardMaterial("color", this.scene);
-    let gizmo = {};
     color.diffuseColor = new Color3(0, 128, 0);
+
+    if (action == "action" && this.gizmo != undefined) {
+      this.gizmo.attachedMesh = null;
+    } else if (action != "action") {
+      this.gizmo = this.Gizmo(this.gizmoMesh, this.gizmo, action);
+    }
     this.sphere.actionManager = new ActionManager(this.scene);
     this.ground.actionManager = new ActionManager(this.scene);
-
     function setElement(
       this: MainScene,
       mesh: AbstractMesh,
@@ -75,7 +80,12 @@ export default class MainScene {
       mesh.actionManager?.registerAction(
         new ExecuteCodeAction(ActionManager.OnPickDownTrigger, () => {
           mesh.material = color;
-          gizmo = this.Gizmo(mesh, gizmo);
+
+          this.gizmo =
+            action == "action"
+              ? undefined
+              : this.Gizmo(mesh, this.gizmo, action);
+          this.gizmoMesh = mesh;
           oppositeMesh.material = null;
         })
       );
@@ -85,12 +95,19 @@ export default class MainScene {
     setElement.call(this, this.ground, this.sphere);
   }
 
-  Gizmo(mesh: AbstractMesh, gizmo: any): any {
-    if (gizmo.attachedMesh == null) {
+  Gizmo(mesh: AbstractMesh, gizmo: any, action: string): any {
+    if (gizmo == undefined || gizmo.action != action) {
       const utilLayer = new UtilityLayerRenderer(this.scene);
-      gizmo = new PositionGizmo(utilLayer);
+      switch (action) {
+        case "action":
+          gizmo.attachedMesh = null;
+        case "position":
+          gizmo = new PositionGizmo(utilLayer);
+          gizmo.action = "position";
+      }
     }
     gizmo.attachedMesh = mesh;
+
     return gizmo;
   }
 }
