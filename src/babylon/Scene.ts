@@ -12,6 +12,8 @@ import {
   StandardMaterial,
   UtilityLayerRenderer,
   PositionGizmo,
+  ScaleGizmo,
+  PlaneRotationGizmo,
   Gizmo,
 } from "@babylonjs/core";
 
@@ -98,13 +100,28 @@ export default class MainScene {
   Gizmo(mesh: AbstractMesh, gizmo: any, action: string): any {
     if (gizmo == undefined || gizmo.action != action) {
       const utilLayer = new UtilityLayerRenderer(this.scene);
+      if (gizmo != undefined) {
+        gizmo.attachedMesh = null;
+      }
       switch (action) {
-        case "action":
-          gizmo.attachedMesh = null;
         case "position":
           gizmo = new PositionGizmo(utilLayer);
           gizmo.action = "position";
+          break;
+        case "scaling":
+          gizmo = new ScaleGizmo(utilLayer);
+          gizmo.action = "scaling";
+          break;
+        case "rotation":
+          gizmo = new PlaneRotationGizmo(
+            new Vector3(0, 1, 0),
+            Color3.FromHexString("#ff0000"),
+            utilLayer
+          );
+          gizmo.action = "rotation";
+          break;
       }
+      gizmo.updateGizmoRotationToMatchAttachedMesh = false;
     }
     gizmo.attachedMesh = mesh;
 
