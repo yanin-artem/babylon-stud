@@ -24,10 +24,12 @@ export default class MainScene {
   sphere!: AbstractMesh;
   gizmo!: Gizmo;
   gizmoMesh!: AbstractMesh;
+  utilLayer: UtilityLayerRenderer;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.engine = new Engine(this.canvas, true);
     this.scene = this.CreateScene();
+    this.utilLayer = new UtilityLayerRenderer(this.scene);
 
     this.engine.runRenderLoop(() => {
       this.scene.render();
@@ -72,21 +74,24 @@ export default class MainScene {
     } else if (action != "action") {
       this.gizmo = this.Gizmo(this.gizmoMesh, this.gizmo, action);
     }
+
     this.sphere.actionManager = new ActionManager(this.scene);
     this.ground.actionManager = new ActionManager(this.scene);
+
     function setElement(
       this: MainScene,
       mesh: AbstractMesh,
       oppositeMesh: AbstractMesh
     ) {
       mesh.actionManager?.registerAction(
-        new ExecuteCodeAction(ActionManager.OnPickDownTrigger, () => {
+        new ExecuteCodeAction(ActionManager.OnLeftPickTrigger, () => {
           mesh.material = color;
 
           this.gizmo =
             action == "action"
               ? undefined
               : this.Gizmo(mesh, this.gizmo, action);
+
           this.gizmoMesh = mesh;
           oppositeMesh.material = null;
         })
@@ -99,24 +104,24 @@ export default class MainScene {
 
   Gizmo(mesh: AbstractMesh, gizmo: any, action: string): any {
     if (gizmo == undefined || gizmo.action != action) {
-      const utilLayer = new UtilityLayerRenderer(this.scene);
       if (gizmo != undefined) {
         gizmo.attachedMesh = null;
       }
+
       switch (action) {
         case "position":
-          gizmo = new PositionGizmo(utilLayer);
+          gizmo = new PositionGizmo(this.utilLayer);
           gizmo.action = "position";
           break;
         case "scaling":
-          gizmo = new ScaleGizmo(utilLayer);
+          gizmo = new ScaleGizmo(this.utilLayer);
           gizmo.action = "scaling";
           break;
         case "rotation":
           gizmo = new PlaneRotationGizmo(
             new Vector3(0, 1, 0),
             Color3.FromHexString("#ff0000"),
-            utilLayer
+            this.utilLayer
           );
           gizmo.action = "rotation";
           break;
