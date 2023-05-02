@@ -30,7 +30,4 @@ onMounted(() => {
 </script>
 
 <style lang="sass" scoped>
-canvas
-  width: 80%
-  height: 80%
 </style>

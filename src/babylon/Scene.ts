@@ -13,8 +13,9 @@ import {
   UtilityLayerRenderer,
   PositionGizmo,
   ScaleGizmo,
-  PlaneRotationGizmo,
+  RotationGizmo,
   Gizmo,
+  ArcRotateCamera,
 } from "@babylonjs/core";
 
 export default class MainScene {
@@ -22,6 +23,7 @@ export default class MainScene {
   engine: Engine;
   ground!: AbstractMesh;
   sphere!: AbstractMesh;
+  camera!: ArcRotateCamera;
   gizmo!: Gizmo;
   gizmoMesh!: AbstractMesh;
   utilLayer: UtilityLayerRenderer;
@@ -31,6 +33,8 @@ export default class MainScene {
     this.scene = this.CreateScene();
     this.utilLayer = new UtilityLayerRenderer(this.scene);
 
+    this.CreateCamera();
+
     this.engine.runRenderLoop(() => {
       this.scene.render();
     });
@@ -38,8 +42,6 @@ export default class MainScene {
 
   CreateScene(): Scene {
     const scene = new Scene(this.engine);
-    const camera = new FreeCamera("camera", new Vector3(0, 2, -6), this.scene);
-    camera.attachControl();
 
     const hemiLight = new HemisphericLight(
       "hemiLight",
@@ -65,6 +67,19 @@ export default class MainScene {
     return scene;
   }
 
+  CreateCamera(): void {
+    this.camera = new ArcRotateCamera(
+      "camera",
+      0,
+      Math.PI / 2.5,
+      10,
+      Vector3.Zero(),
+      this.scene
+    );
+
+    this.camera.attachControl(this.canvas, true);
+  }
+
   Actions(action: string): void {
     const color = new StandardMaterial("color", this.scene);
     color.diffuseColor = new Color3(0, 128, 0);
@@ -86,6 +101,7 @@ export default class MainScene {
       mesh.actionManager?.registerAction(
         new ExecuteCodeAction(ActionManager.OnLeftPickTrigger, () => {
           mesh.material = color;
+          this.camera.setTarget(mesh);
 
           this.gizmo =
             action == "action"
@@ -118,11 +134,7 @@ export default class MainScene {
           gizmo.action = "scaling";
           break;
         case "rotation":
-          gizmo = new PlaneRotationGizmo(
-            new Vector3(0, 1, 0),
-            Color3.FromHexString("#ff0000"),
-            this.utilLayer
-          );
+          gizmo = new RotationGizmo(this.utilLayer);
           gizmo.action = "rotation";
           break;
       }
