@@ -1,7 +1,6 @@
 import {
   Scene,
   Engine,
-  FreeCamera,
   Vector3,
   HemisphericLight,
   MeshBuilder,
@@ -81,9 +80,11 @@ export default class MainScene {
   }
 
   Actions(action: string): void {
+    //Цвета материала
     const color = new StandardMaterial("color", this.scene);
     color.diffuseColor = new Color3(0, 128, 0);
 
+    //Проверка на способ, взаимодействия. Если выбран не "курсор(action)", то появляются элементы gizmo
     if (action == "action" && this.gizmo != undefined) {
       this.gizmo.attachedMesh = null;
     } else if (action != "action") {
@@ -100,9 +101,11 @@ export default class MainScene {
     ) {
       mesh.actionManager?.registerAction(
         new ExecuteCodeAction(ActionManager.OnLeftPickTrigger, () => {
+          //Установка цвета и камеры на выбранный элемент сцены
           mesh.material = color;
           this.camera.setTarget(mesh);
 
+          //Проверка на способ взаимодействия
           this.gizmo =
             action == "action"
               ? undefined
@@ -119,11 +122,14 @@ export default class MainScene {
   }
 
   Gizmo(mesh: AbstractMesh, gizmo: any, action: string): any {
+    //Код запускается, если элемент gizmo не определен или выбран иной способ взаимодействия
     if (gizmo == undefined || gizmo.action != action) {
+      //Сброс элемента gizmo, во избежание наложения эффектов
       if (gizmo != undefined) {
         gizmo.attachedMesh = null;
       }
 
+      //Установка элементов gizmo, в зависимости от выбранного способа взаимодействия
       switch (action) {
         case "position":
           gizmo = new PositionGizmo(this.utilLayer);
