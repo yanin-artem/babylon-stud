@@ -56,12 +56,18 @@ export default class MainScene {
       this.scene
     );
 
+    const abstractGround = new AbstractMesh("abstractGround", this.scene);
+    this.ground.parent = abstractGround;
+
     this.sphere = MeshBuilder.CreateSphere(
       "sphere",
       { diameter: 1 },
       this.scene
     );
+
+    const abstractSphere = new AbstractMesh("abstractSphere", this.scene);
     this.sphere.position = new Vector3(0, 1, 0);
+    this.sphere.parent = abstractSphere;
 
     return scene;
   }
@@ -128,7 +134,6 @@ export default class MainScene {
       if (gizmo != undefined) {
         gizmo.attachedMesh = null;
       }
-
       //Установка элементов gizmo, в зависимости от выбранного способа взаимодействия
       switch (action) {
         case "position":
@@ -144,10 +149,9 @@ export default class MainScene {
           gizmo.action = "rotation";
           break;
       }
-      gizmo.updateGizmoRotationToMatchAttachedMesh = false;
     }
-    gizmo.attachedMesh = mesh;
 
+    gizmo.attachedMesh = action === "rotation" ? mesh?.parent : mesh;
     return gizmo;
   }
 }
